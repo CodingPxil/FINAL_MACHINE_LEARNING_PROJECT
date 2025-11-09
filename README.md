@@ -41,3 +41,13 @@ Each subset of the dataset is loaded using PyTorch’s `ImageFolder` and `DataLo
 ```python
 train_data = datasets.ImageFolder(root=train_dir, transform=train_transform)
 train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+```
+
+### Dataset Summary
+| Dataset | NORMAL | PNEUMONIA | Total |
+| Train | 1341 | 3875 | 5216 |
+| Validation | 8 | 8 | 16 |
+| Test | 234 | 390 | 624 |
+
+### Visualization Example
+
