@@ -50,4 +50,8 @@ train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
 | Test | 234 | 390 | 624 |
 
 ### Visualization Example
+Below are sample training images after preprocessing:
 
+<p align="center">
+  <img src="visualization_sample.png" alt="Sample Training Images" width="600"/>
+</p>
