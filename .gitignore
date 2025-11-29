@@ -1,0 +1,30 @@
+# --- Python & OS Junk ---
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+.venv
+venv/
+env/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- Data ---
+# Prevents uploading the massive dataset folder
+chest_xray/
+data/
+
+# --- Model Weights & Large Files ---
+# GitHub has a 100MB limit. So no .pth files
+*.pth
+*.ckpt
+*.h5
+
+# --- Training Logs ---
+# by PyTorch Lightning in train.py
+lightning_logs/
+
+# --- IDE Settings ---
+.vscode/
+.idea/
