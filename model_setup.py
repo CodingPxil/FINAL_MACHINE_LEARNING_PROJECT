@@ -3,6 +3,42 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
 
+class RES_MODEL(nn.Module):
+    def __init__(self, in_d, h_d, num_classes):
+        super().__init__()
+        self.l1 = nn.Linear(in_d, h_d)
+
+
+        self.r1 = nn.ReLU()
+     
+
+        self.l2 = nn.Linear(h_d, h_d//2)
+
+
+        self.r2 = nn.ReLU()
+
+
+
+        self.l3 = nn.Linear(h_d//2, num_classes)
+    def forward(self, x):
+        x = self.l1(x)
+
+        x = self.r1(x)
+
+
+
+        x = self.l2(x)
+
+        x = self.r2(x)
+
+
+
+        x= self.l3(x)
+        return x
+
+
+
+
 def build_model(num_classes, gray_scale, freeze_backbone, lr):
     # Load Pre-trained ResNet
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
