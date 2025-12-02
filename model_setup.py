@@ -26,7 +26,7 @@ class RES_MODEL(nn.Module):
 
 
 
-def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256):
+def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256,return_scheduler=False):
     # Load Pre-trained ResNet
     model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 
@@ -60,4 +60,7 @@ def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256):
     )
 
 
-    return model, criterion, optimizer,opti_s
+    if return_scheduler:
+        return model, criterion, optimizer, opti_s
+    else:
+        return model, criterion, optimizer
