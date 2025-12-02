@@ -47,19 +47,18 @@ sl.markdown('<div class="title-header">Pneumonia DETECTOR</div>', unsafe_allow_h
 sl.markdown('<div class="subtext">By: Sumukh Sudhir Jagirdar, Aedin Cowan, Brian Chan, Joys James</div>', unsafe_allow_html=True)
 
 # --- 1. Model Loading Logic ---
-# We use cache_resource so the model loads only once, not every time you click a button
 @sl.cache_resource
 def load_system_model():
     device = torch.device('cpu')
     
-    model, _, _ = build_model(num_classes=2, gray_scale=False, freeze_backbone=False, lr=0.001)
+    # We keep freeze_backbone=True as the error suggested the model expects a specific structure
+    model, _, _ = build_model(num_classes=2, gray_scale=False, freeze_backbone=True, lr=0.001)
     
     path = 'pneumonia_model_with_hparams.pth'
     
     if not os.path.exists(path):
         return None
 
-    # Robust Weight Loading (Same as evaluate.py)
     try:
         checkpoint = torch.load(path, map_location=device)
         
@@ -73,11 +72,30 @@ def load_system_model():
 
         new_state_dict = {}
         for k, v in state_dict.items():
+            # Remove 'model.' prefix if present
             name = k.replace("model.", "")
+            
+            # --- CRITICAL FIX: KEY RENAMING PATCH ---
+            # The saved file has 'fc.weight', but the current model code expects 'fc.layer.weight'
+            if name == "fc.weight":
+                name = "fc.layer.weight"
+            elif name == "fc.bias":
+                name = "fc.layer.bias"
+            # ----------------------------------------
+            
             new_state_dict[name] = v
             
-        # Load weights
-        model.load_state_dict(new_state_dict, strict=False)
+        # Attempt to load STRICTLY.
+        # If this succeeds, your confidence scores will be accurate.
+        try:
+            model.load_state_dict(new_state_dict, strict=True)
+            print("✅ Success! Model loaded with strict=True. Weights are aligned.")
+        except RuntimeError as e:
+            # If it still fails, we show the specific error so we can fix it.
+            sl.error(f"⚠️ MODEL CONFIGURATION ERROR: \n\n{e}")
+            # Fallback to loose loading so app doesn't crash
+            model.load_state_dict(new_state_dict, strict=False)
+
         model.eval()
         return model
     except Exception as e:
@@ -95,6 +113,7 @@ def process_image(img):
         transforms.Grayscale(num_output_channels=3),
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        # Normalization from dataloader.py
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     return transform(img).unsqueeze(0)
