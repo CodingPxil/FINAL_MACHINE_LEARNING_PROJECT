@@ -4,20 +4,25 @@ import torch.optim as optim
 from torchvision import models
 
 class RES_MODEL(nn.Module):
-    def __init__(self, in_d, h_d, num_classes):
+    def __init__(self, in_d, h_d, num_classes, is_linear=False):
         super().__init__()
 
-        self.layer = nn.Sequential(
-            nn.Linear(in_d, h_d),
-            nn.ReLU(),
-            nn.Dropout(0.2),
+        if is_linear:
+            self.layer = nn.Linear(in_d, num_classes)
 
-            nn.Linear(h_d, h_d//2),
-            nn.ReLU(),
-            nn.Dropout(0.2),
+        else:
 
-            nn.Linear(h_d//2, num_classes)
-        )
+            self.layer = nn.Sequential(
+                nn.Linear(in_d, h_d),
+                nn.ReLU(),
+                nn.Dropout(0.2),
+
+                nn.Linear(h_d, h_d//2),
+                nn.ReLU(),
+                nn.Dropout(0.2),
+
+                nn.Linear(h_d//2, num_classes)
+            )
        
     def forward(self, x):
       
@@ -26,7 +31,7 @@ class RES_MODEL(nn.Module):
 
 
 
-def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256,return_scheduler=False):
+def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256, use_linear_head=True):
     # Load Pre-trained ResNet
     model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 
@@ -38,7 +43,13 @@ def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256,return_sche
 
     # .pth file expects a single Linear layer here
     in_features = model.fc.in_features
-    model.fc = RES_MODEL(in_features, h_d, num_classes)
+    model.fc = RES_MODEL(
+        in_d=in_features,
+        h_d=h_d,
+        num_classes=num_classes,
+        is_linear=use_linear_head
+    )
+    
 
     if freeze_backbone:
         for name, param in model.named_parameters():
@@ -51,16 +62,5 @@ def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256,return_sche
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(train_params, lr=lr)
 
-    opti_s = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode='min',
-        factor=0.5,
-        patience=3,
-        verbose=False
-    )
-
-
-    if return_scheduler:
-        return model, criterion, optimizer, opti_s
-    else:
-        return model, criterion, optimizer
+    
+    return model, criterion, optimizer
