@@ -39,7 +39,7 @@ class RES_MODEL(nn.Module):
 
 
 
-def build_model(num_classes, gray_scale, freeze_backbone, lr):
+def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256):
     # Load Pre-trained ResNet
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
 
@@ -50,8 +50,8 @@ def build_model(num_classes, gray_scale, freeze_backbone, lr):
         model.conv1 = new_conv
 
     # .pth file expects a single Linear layer here
-    features = model.fc.in_features
-    model.fc = nn.Linear(features, num_classes)
+    in_features = model.fc.in_features
+    model.fc = RES_MODEL(in_features, h_d, num_classes)
 
     if freeze_backbone:
         for name, param in model.named_parameters():
