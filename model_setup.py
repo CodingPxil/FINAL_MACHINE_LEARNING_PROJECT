@@ -1,4 +1,4 @@
-
+import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
@@ -28,7 +28,7 @@ class RES_MODEL(nn.Module):
 
 def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256):
     # Load Pre-trained ResNet
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+    model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 
     if gray_scale:
         old_weight = model.conv1.weight.data.clone()
@@ -51,4 +51,13 @@ def build_model(num_classes, gray_scale, freeze_backbone, lr,h_d=256):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(train_params, lr=lr)
 
-    return model, criterion, optimizer
+    opti_s = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode='min',
+        factor=0.5,
+        patience=3,
+        verbose=False
+    )
+
+
+    return model, criterion, optimizer,opti_s
