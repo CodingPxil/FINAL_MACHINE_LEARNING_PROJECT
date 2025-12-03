@@ -75,8 +75,6 @@ def load_system_model():
             # Remove 'model.' prefix if present
             name = k.replace("model.", "")
             
-            # --- CRITICAL FIX: KEY RENAMING PATCH ---
-            # The saved file has 'fc.weight', but the current model code expects 'fc.layer.weight'
             if name == "fc.weight":
                 name = "fc.layer.weight"
             elif name == "fc.bias":
@@ -84,16 +82,11 @@ def load_system_model():
             # ----------------------------------------
             
             new_state_dict[name] = v
-            
-        # Attempt to load STRICTLY.
-        # If this succeeds, your confidence scores will be accurate.
         try:
             model.load_state_dict(new_state_dict, strict=True)
             print("✅ Success! Model loaded with strict=True. Weights are aligned.")
         except RuntimeError as e:
-            # If it still fails, we show the specific error so we can fix it.
             sl.error(f"⚠️ MODEL CONFIGURATION ERROR: \n\n{e}")
-            # Fallback to loose loading so app doesn't crash
             model.load_state_dict(new_state_dict, strict=False)
 
         model.eval()
